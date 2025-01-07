@@ -1,0 +1,13 @@
+{
+  "apps": [
+    {
+      "name": "GIT COMMITS",
+      "script": "dist/main.js",
+      "log_date_format": "YYYY-MM-DD HH:mm:ss",
+      "merge_logs": true,
+      "out_file": "/logs/output_git_commits.log",
+      "error_file": "/logs/error_git_commits.log",
+      "watch": true
+    }
+  ]
+}
