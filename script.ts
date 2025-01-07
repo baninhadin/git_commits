@@ -92,7 +92,7 @@ function getPatternForToday(): {
 }
 
 function writeLog(entry: string): void {
-  fs.appendFileSync('log.txt', entry + '\n')
+  fs.writeFileSync('log.txt', entry + '\n')
 }
 
 function gitCommit(date: string, message: string): void {
@@ -137,7 +137,7 @@ async function generateCommitsForToday(): Promise<void> {
     writeLog(logEntry)
     gitCommit(today, logEntry)
 
-    await delay(10000)
+    await delay(1000)
   }
 }
 
@@ -157,7 +157,7 @@ async function main(): Promise<void> {
     child_process.execSync('git push')
     console.log('Changes pushed to GitHub successfully.')
 
-    process.exit(0);
+    process.exit(0)
   } catch (error) {
     console.error('Error:', error)
   }
