@@ -7,7 +7,9 @@
       "merge_logs": true,
       "out_file": "/logs/output_git_commits.log",
       "error_file": "/logs/error_git_commits.log",
-      "watch": false
+      "watch": false,
+      "autorestart": false,
+      "exec_mode": "fork"
     }
   ]
 }
