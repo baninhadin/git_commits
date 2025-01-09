@@ -96,8 +96,12 @@ function writeLog(entry: string): void {
 }
 
 function gitCommit(date: string, message: string): void {
-  child_process.execSync('git add log.txt')
-  child_process.execSync(`git commit -m "${message}" --date "${date}"`)
+  try {
+    child_process.execSync('git add log.txt')
+    child_process.execSync(`git commit -m "${message}" --date "${date}"`)
+  } catch (error) {
+    console.error('Git command failed:', error)
+  }
 }
 
 function delay(ms: number): Promise<void> {
@@ -106,13 +110,13 @@ function delay(ms: number): Promise<void> {
 
 async function generateCommitsForToday(): Promise<void> {
   const patternData = getPatternForToday()
-  const today = new Date().toISOString().split('T')[0]
+  const today = new Date().toString()
 
   if (!patternData) {
-    const skipMessage = `Skip today. at ${today}`
+    const skipMessage = `Skip today. at ${new Date()}`
+    console.log(skipMessage)
     writeLog(skipMessage)
     gitCommit(today, skipMessage)
-    console.log(skipMessage)
     return
   }
 
@@ -137,12 +141,13 @@ async function generateCommitsForToday(): Promise<void> {
     writeLog(logEntry)
     gitCommit(today, logEntry)
 
-    await delay(1000)
+    await delay(5000)
   }
 }
 
 async function main(): Promise<void> {
   try {
+    console.log('Script run at: ' + new Date())
     console.log('Generating heatmap for H pattern...')
     const HData = simulateHeatmapData(HPattern)
     createHeatmap(HData, 'HPatternHeatmap.png')
@@ -157,7 +162,7 @@ async function main(): Promise<void> {
     child_process.execSync('git push')
     console.log('Changes pushed to GitHub successfully.')
 
-    process.exit(0)
+    return
   } catch (error) {
     console.error('Error:', error)
   }
