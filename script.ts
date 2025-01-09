@@ -162,9 +162,11 @@ async function main(): Promise<void> {
     child_process.execSync('git push')
     console.log('Changes pushed to GitHub successfully.')
 
-    return
+    console.log('Script completed.')
   } catch (error) {
     console.error('Error:', error)
+  } finally {
+    process.exit(0)
   }
 }
 
