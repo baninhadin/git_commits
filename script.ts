@@ -27,7 +27,7 @@ const endDate = new Date('2025-12-27')
 
 function randomCommits(type: 'dark' | 'light'): number {
   return type === 'dark'
-    ? Math.floor(Math.random() * 10) + 25
+    ? Math.floor(Math.random() * 10) + 26
     : Math.floor(Math.random() * 20) + 2
 }
 
