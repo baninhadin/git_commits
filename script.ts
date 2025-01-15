@@ -120,6 +120,8 @@ async function generateCommitsForToday(): Promise<void> {
     return
   }
 
+  console.log(`Pattern for ${today}: ${JSON.stringify(patternData)}`)
+
   const { pattern, weekIndex, dayIndex } = patternData
 
   const currentPattern = pattern === 'H' ? HPattern : EPattern
