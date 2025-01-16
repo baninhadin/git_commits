@@ -27,8 +27,8 @@ const endDate = new Date('2025-12-27')
 
 function randomCommits(type: 'dark' | 'light'): number {
   return type === 'dark'
-    ? Math.floor(Math.random() * 2) + 8
-    : Math.floor(Math.random() * 2) + 2
+    ? Math.floor(Math.random() * 3) + 13
+    : Math.floor(Math.random() * 3) + 2
 }
 
 function simulateHeatmapData(
@@ -119,6 +119,8 @@ async function generateCommitsForToday(): Promise<void> {
     gitCommit(today, skipMessage)
     return
   }
+
+  console.log(`Pattern for ${today}: ${JSON.stringify(patternData)}`)
 
   const { pattern, weekIndex, dayIndex } = patternData
 
