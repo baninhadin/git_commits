@@ -83,8 +83,10 @@ function getPatternForToday(): {
   const dayDifference = Math.floor(
     (today.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)
   )
+
+  const dayIndex = dayDifference % 7
+
   const weekIndex = Math.floor(dayDifference / 7) % 4
-  const dayIndex = (today.getDay() - 1 + 7) % 7
 
   const pattern = Math.floor(dayDifference / (4 * 7)) % 2 === 0 ? 'H' : 'E'
 
