@@ -27,8 +27,8 @@ const endDate = new Date('2025-12-27')
 
 function randomCommits(type: 'dark' | 'light'): number {
   return type === 'dark'
-    ? Math.floor(Math.random() * 10) + 23
-    : Math.floor(Math.random() * 10) + 2
+    ? Math.floor(Math.random() * 10) + 24
+    : Math.floor(Math.random() * 20) + 2
 }
 
 function simulateHeatmapData(
