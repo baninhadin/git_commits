@@ -73,7 +73,7 @@ function getPatternForDate(date: Date): {
     pattern = 'H'
   } else {
     const cycle28 = Math.floor((dayDifference - 56) / (4 * 7))
-    pattern = cycle28 % 2 === 0 ? 'E' : 'H'
+    pattern = cycle28 % 2 === 0 ? 'H' : 'E' // SWAP THESE!
   }
 
   const currentPattern = pattern === 'H' ? HPattern : EPattern
