@@ -44,6 +44,11 @@ function executeCommand(command: string): void {
   }
 }
 
+// Helper function to add delay
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 // Get pattern for a specific date
 function getPatternForDate(date: Date): {
   pattern: 'H' | 'E'
@@ -78,7 +83,7 @@ function getPatternForDate(date: Date): {
 }
 
 // Function to make commits with a specific date
-function makeCommitsOnDate(date: Date, count: number): void {
+async function makeCommitsOnDate(date: Date, count: number): Promise<void> {
   // Create log.txt if it doesn't exist
   if (!existsSync('log.txt')) {
     writeFileSync('log.txt', '# Commit Log\n\n')
@@ -104,148 +109,159 @@ function makeCommitsOnDate(date: Date, count: number): void {
     // Use --date parameter which works more reliably across platforms
     const commitCommand = `git commit --date="${formattedDate}" -m "Update log: commit ${i} of ${count} for ${dateStr}"`
     executeCommand(commitCommand)
+
+    // Add delay between commits (except after the last one)
+    if (i < count) {
+      await delay(1000) // 1 second delay
+    }
   }
 }
 
-// Check if command line arguments are provided
-const args = process.argv.slice(2)
+// Main execution function
+async function main() {
+  // Check if command line arguments are provided
+  const args = process.argv.slice(2)
 
-if (args.length >= 4) {
-  // Use command line arguments: startDate endDate darkCount lightCount
-  const startDateStr = args[0]
-  const endDateStr = args[1]
-  const darkCount = parseInt(args[2], 10)
-  const lightCount = parseInt(args[3], 10)
+  if (args.length >= 4) {
+    // Use command line arguments: startDate endDate darkCount lightCount
+    const startDateStr = args[0]
+    const endDateStr = args[1]
+    const darkCount = parseInt(args[2], 10)
+    const lightCount = parseInt(args[3], 10)
 
-  if (
-    isNaN(darkCount) ||
-    darkCount < 0 ||
-    isNaN(lightCount) ||
-    lightCount < 0
-  ) {
-    console.error('Please enter valid non-negative numbers for commit counts')
-    process.exit(1)
-  }
+    if (
+      isNaN(darkCount) ||
+      darkCount < 0 ||
+      isNaN(lightCount) ||
+      lightCount < 0
+    ) {
+      console.error('Please enter valid non-negative numbers for commit counts')
+      process.exit(1)
+    }
 
-  const start = new Date(startDateStr)
-  const end = new Date(endDateStr)
-  end.setHours(23, 59, 59, 999) // Include the end date
+    const start = new Date(startDateStr)
+    const end = new Date(endDateStr)
+    end.setHours(23, 59, 59, 999) // Include the end date
 
-  console.log(`Processing dates from ${startDateStr} to ${endDateStr}...`)
-  console.log(
-    `Dark dates: ${darkCount} commits, Light dates: ${lightCount} commits\n`
-  )
+    console.log(`Processing dates from ${startDateStr} to ${endDateStr}...`)
+    console.log(
+      `Dark dates: ${darkCount} commits, Light dates: ${lightCount} commits\n`
+    )
 
-  let darkDatesCount = 0
-  let lightDatesCount = 0
-  const currentDate = new Date(start)
+    let darkDatesCount = 0
+    let lightDatesCount = 0
+    const currentDate = new Date(start)
 
-  while (currentDate <= end) {
-    const patternData = getPatternForDate(currentDate)
-    if (patternData) {
-      const count = patternData.isDark ? darkCount : lightCount
-      const type = patternData.isDark ? 'dark' : 'light'
+    while (currentDate <= end) {
+      const patternData = getPatternForDate(currentDate)
+      if (patternData) {
+        const count = patternData.isDark ? darkCount : lightCount
+        const type = patternData.isDark ? 'dark' : 'light'
 
-      if (count > 0) {
-        console.log(
-          `Processing ${currentDate.toISOString().split('T')[0]} (${
-            patternData.pattern
-          } pattern, ${type})...`
-        )
-        makeCommitsOnDate(new Date(currentDate), count)
-        console.log(`  ✓ Added ${count} commits\n`)
+        if (count > 0) {
+          console.log(
+            `Processing ${currentDate.toISOString().split('T')[0]} (${
+              patternData.pattern
+            } pattern, ${type})...`
+          )
+          await makeCommitsOnDate(new Date(currentDate), count)
+          console.log(`  ✓ Added ${count} commits\n`)
 
-        if (patternData.isDark) {
-          darkDatesCount++
-        } else {
-          lightDatesCount++
+          if (patternData.isDark) {
+            darkDatesCount++
+          } else {
+            lightDatesCount++
+          }
         }
       }
+      currentDate.setDate(currentDate.getDate() + 1)
     }
-    currentDate.setDate(currentDate.getDate() + 1)
-  }
 
-  console.log(`\n✓ Completed!`)
-  console.log(`  Dark dates processed: ${darkDatesCount}`)
-  console.log(`  Light dates processed: ${lightDatesCount}`)
-  console.log(`Don't forget to push your changes: git push origin main`)
-} else {
-  // Prompt user for input
-  rl.question('Enter start date (YYYY-MM-DD): ', (startDateStr) => {
-    rl.question('Enter end date (YYYY-MM-DD): ', (endDateStr) => {
-      rl.question(
-        'Enter number of commits for dark dates: ',
-        (darkCountStr) => {
-          rl.question(
-            'Enter number of commits for light dates: ',
-            (lightCountStr) => {
-              const darkCount = parseInt(darkCountStr, 10)
-              const lightCount = parseInt(lightCountStr, 10)
+    console.log(`\n✓ Completed!`)
+    console.log(`  Dark dates processed: ${darkDatesCount}`)
+    console.log(`  Light dates processed: ${lightDatesCount}`)
+    console.log(`Don't forget to push your changes: git push origin main`)
+  } else {
+    // Prompt user for input
+    rl.question('Enter start date (YYYY-MM-DD): ', (startDateStr) => {
+      rl.question('Enter end date (YYYY-MM-DD): ', (endDateStr) => {
+        rl.question(
+          'Enter number of commits for dark dates: ',
+          (darkCountStr) => {
+            rl.question(
+              'Enter number of commits for light dates: ',
+              async (lightCountStr) => {
+                const darkCount = parseInt(darkCountStr, 10)
+                const lightCount = parseInt(lightCountStr, 10)
 
-              if (
-                isNaN(darkCount) ||
-                darkCount < 0 ||
-                isNaN(lightCount) ||
-                lightCount < 0
-              ) {
-                console.error(
-                  'Please enter valid non-negative numbers for commit counts'
+                if (
+                  isNaN(darkCount) ||
+                  darkCount < 0 ||
+                  isNaN(lightCount) ||
+                  lightCount < 0
+                ) {
+                  console.error(
+                    'Please enter valid non-negative numbers for commit counts'
+                  )
+                  rl.close()
+                  return
+                }
+
+                const start = new Date(startDateStr)
+                const end = new Date(endDateStr)
+                end.setHours(23, 59, 59, 999)
+
+                console.log(
+                  `Processing dates from ${startDateStr} to ${endDateStr}...`
                 )
-                rl.close()
-                return
-              }
+                console.log(
+                  `Dark dates: ${darkCount} commits, Light dates: ${lightCount} commits\n`
+                )
 
-              const start = new Date(startDateStr)
-              const end = new Date(endDateStr)
-              end.setHours(23, 59, 59, 999)
+                let darkDatesCount = 0
+                let lightDatesCount = 0
+                const currentDate = new Date(start)
 
-              console.log(
-                `Processing dates from ${startDateStr} to ${endDateStr}...`
-              )
-              console.log(
-                `Dark dates: ${darkCount} commits, Light dates: ${lightCount} commits\n`
-              )
+                while (currentDate <= end) {
+                  const patternData = getPatternForDate(currentDate)
+                  if (patternData) {
+                    const count = patternData.isDark ? darkCount : lightCount
+                    const type = patternData.isDark ? 'dark' : 'light'
 
-              let darkDatesCount = 0
-              let lightDatesCount = 0
-              const currentDate = new Date(start)
+                    if (count > 0) {
+                      console.log(
+                        `Processing ${
+                          currentDate.toISOString().split('T')[0]
+                        } (${patternData.pattern} pattern, ${type})...`
+                      )
+                      await makeCommitsOnDate(new Date(currentDate), count)
+                      console.log(`  ✓ Added ${count} commits\n`)
 
-              while (currentDate <= end) {
-                const patternData = getPatternForDate(currentDate)
-                if (patternData) {
-                  const count = patternData.isDark ? darkCount : lightCount
-                  const type = patternData.isDark ? 'dark' : 'light'
-
-                  if (count > 0) {
-                    console.log(
-                      `Processing ${currentDate.toISOString().split('T')[0]} (${
-                        patternData.pattern
-                      } pattern, ${type})...`
-                    )
-                    makeCommitsOnDate(new Date(currentDate), count)
-                    console.log(`  ✓ Added ${count} commits\n`)
-
-                    if (patternData.isDark) {
-                      darkDatesCount++
-                    } else {
-                      lightDatesCount++
+                      if (patternData.isDark) {
+                        darkDatesCount++
+                      } else {
+                        lightDatesCount++
+                      }
                     }
                   }
+                  currentDate.setDate(currentDate.getDate() + 1)
                 }
-                currentDate.setDate(currentDate.getDate() + 1)
-              }
 
-              console.log(`\n✓ Completed!`)
-              console.log(`  Dark dates processed: ${darkDatesCount}`)
-              console.log(`  Light dates processed: ${lightDatesCount}`)
-              console.log(
-                `Don't forget to push your changes: git push origin main`
-              )
-              rl.close()
-            }
-          )
-        }
-      )
+                console.log(`\n✓ Completed!`)
+                console.log(`  Dark dates processed: ${darkDatesCount}`)
+                console.log(`  Light dates processed: ${lightDatesCount}`)
+                console.log(
+                  `Don't forget to push your changes: git push origin main`
+                )
+                rl.close()
+              }
+            )
+          }
+        )
+      })
     })
-  })
+  }
 }
+
+// Run the main function
+main()
